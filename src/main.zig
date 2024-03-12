@@ -10,4 +10,14 @@ pub fn main() !void {
 
     raylib.InitWindow(screen_width, screen_height, "Snake!");
     defer raylib.CloseWindow();
+
+    raylib.SetTargetFPS(60);
+
+    while (!raylib.WindowShouldClose()) {
+        raylib.BeginDrawing();
+        defer raylib.EndDrawing();
+
+        raylib.ClearBackground(raylib.RAYWHITE);
+        raylib.DrawText("Hello, World!", 190, 200, 20, raylib.LIGHTGRAY);
+    }
 }
