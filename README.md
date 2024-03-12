@@ -2,7 +2,7 @@
 
 ## The Game
 
-A basic, classic snake game. \
+A basic, classic snake game.
 
 ## Building
 
