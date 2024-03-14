@@ -33,18 +33,9 @@ pub fn main() !void {
     var game_paused: bool = false;
     _ = game_paused;
 
-    var snake = [_]Snake_Cell{
-        Snake_Cell{}
-    } ** (@as(i32, screen_width) * screen_width);
+    var snake = [_]Snake_Cell{Snake_Cell{}} ** (@as(i32, screen_width) * screen_width);
 
-    snake[0] = Snake_Cell{
-        .head = true,
-        .active = true,
-        .position = raylib.Vector2{
-            .x = screen_width / 2,
-            .y = screen_height / 2
-        }
-    };
+    snake[0] = Snake_Cell{ .head = true, .active = true, .position = raylib.Vector2{ .x = screen_width / 2, .y = screen_height / 2 } };
 
     raylib.SetTargetFPS(60);
 
