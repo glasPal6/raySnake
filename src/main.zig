@@ -33,7 +33,7 @@ pub fn main() !void {
     var game_paused: bool = false;
     _ = game_paused;
 
-    var snake = [_]Snake_Cell{Snake_Cell{}} ** (@as(i32, screen_width) * screen_width);
+    var snake = [_]Snake_Cell{Snake_Cell{}} ** (@as(i32, 100) * 100);
 
     snake[0] = Snake_Cell{
         .head = true,
