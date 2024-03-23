@@ -12,7 +12,7 @@ cd zig-out/bin
 ./raySnake
 ```
 
-Note that `raylib` as a library will need to be installed. Currently it uses the C library, not the zig library. 
+Note that `raylib` as a library will need to be installed. Currently it uses the C library, not the zig library. The `raylib` github has how to install it.
 
 ## Controls
 
