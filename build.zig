@@ -23,6 +23,8 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+
+    // required libraries for linking
     exe.linkLibC();
     exe.linkSystemLibrary("raylib");
 
