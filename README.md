@@ -17,4 +17,5 @@ Note that `raylib` as a library will need to be installed. Currently it uses the
 ## Controls
 
 The snake is controlled with the `arrow keys`. \
-The game can ge paused with "p".
+The game can ge paused with "p". \
+The pace of the snake can be set in the constants.
