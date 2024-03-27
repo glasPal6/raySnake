@@ -23,6 +23,7 @@ pub fn main() !void {
     var game_state: Game_State = Game_State.Title_Screen;
     var game_paused: bool = false;
     _ = game_paused;
+    var frame_count: u32 = 0;
 
     raylib.SetTargetFPS(60);
 
@@ -30,10 +31,11 @@ pub fn main() !void {
     while (!raylib.WindowShouldClose()) {
         // Update Step
         try switch (game_state) {
-            Game_State.Title_Screen => update_functions.update_Title_Screen(),
+            Game_State.Title_Screen => update_functions.update_Title_Screen(&frame_count),
             Game_State.Game_Screen => update_functions.update_Game_Screen(),
             Game_State.Ending_Screen => update_functions.update_Endingn_Screen(100),
         };
+        frame_count += 1;
 
         // Draw Step
         raylib.BeginDrawing();
