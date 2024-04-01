@@ -1,4 +1,5 @@
 const std = @import("std");
+const update_functions = @import("update_functions.zig");
 
 const raylib = @cImport({
     @cInclude("raylib.h");
@@ -8,15 +9,6 @@ const Game_State = enum {
     Title_Screen,
     Game_Screen,
     Ending_Screen,
-};
-
-const Snake_Cell = struct {
-    active: bool = false,
-    position: raylib.Vector2 = raylib.Vector2{
-        .x = 0,
-        .y = 0,
-    },
-    head: bool = false,
 };
 
 pub fn main() !void {
@@ -29,26 +21,34 @@ pub fn main() !void {
 
     // Define the variables
     var game_state: Game_State = Game_State.Title_Screen;
-    _ = game_state;
     var game_paused: bool = false;
     _ = game_paused;
-
-    var snake = [_]Snake_Cell{Snake_Cell{}} ** (@as(i32, 100) * 100);
-
-    snake[0] = Snake_Cell{
-        .head = true,
-        .active = true, 
-        .position = raylib.Vector2{ .x = screen_width / 2, .y = screen_height / 2 } 
-    };
+    var frame_count: u32 = 0;
 
     raylib.SetTargetFPS(60);
 
     // Run the game
     while (!raylib.WindowShouldClose()) {
+        // Update Step
+        try switch (game_state) {
+            Game_State.Title_Screen => update_functions.update_Title_Screen(&frame_count),
+            Game_State.Game_Screen => update_functions.update_Game_Screen(),
+            Game_State.Ending_Screen => update_functions.update_Endingn_Screen(100),
+        };
+        frame_count += 1;
+
+        // Draw Step
         raylib.BeginDrawing();
         defer raylib.EndDrawing();
 
-        raylib.ClearBackground(raylib.RAYWHITE);
-        raylib.DrawText("Hello, World!", 190, 200, 20, raylib.LIGHTGRAY);
+        raylib.ClearBackground(raylib.BLACK);
+        
+        if (raylib.IsKeyReleased(raylib.KEY_ENTER)) {
+            game_state = switch (game_state) {
+                Game_State.Title_Screen => Game_State.Game_Screen,
+                Game_State.Game_Screen => Game_State.Ending_Screen,
+                Game_State.Ending_Screen => Game_State.Title_Screen,
+            };
+        }
     }
 }
