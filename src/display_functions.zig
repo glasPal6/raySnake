@@ -3,7 +3,7 @@ const raylib = @cImport({
     @cInclude("raylib.h");
 });
 
-pub fn update_Title_Screen(frame_count: *u32) void {
+pub fn display_Title_Screen(frame_count: *u32) void {
     // Draw the title screen
     raylib.DrawText("SNAKE",
                     @divFloor(raylib.GetScreenWidth(), 2) - @divFloor(raylib.MeasureText("SNAKE", 80), 2),
@@ -24,11 +24,11 @@ pub fn update_Title_Screen(frame_count: *u32) void {
     }
 }
 
-pub fn update_Game_Screen() void {
+pub fn display_Game_Screen() void {
     raylib.DrawText("Game Screen", 10, 10, 20, raylib.RED);
 }
 
-pub fn update_Endingn_Screen(score: u16) !void {
+pub fn display_Endingn_Screen(score: u16) !void {
     // Display the score on the screen
     var score_buf: [3]u8 = undefined;
     const score_str = try std.fmt.bufPrint(&score_buf, "{}", .{score});

@@ -1,5 +1,5 @@
 const std = @import("std");
-const update_functions = @import("update_functions.zig");
+const display_functions = @import("display_functions.zig");
 
 const raylib = @cImport({
     @cInclude("raylib.h");
@@ -31,9 +31,9 @@ pub fn main() !void {
     while (!raylib.WindowShouldClose()) {
         // Update Step
         try switch (game_state) {
-            Game_State.Title_Screen => update_functions.update_Title_Screen(&frame_count),
-            Game_State.Game_Screen => update_functions.update_Game_Screen(),
-            Game_State.Ending_Screen => update_functions.update_Endingn_Screen(100),
+            Game_State.Title_Screen => display_functions.display_Title_Screen(&frame_count),
+            Game_State.Game_Screen => display_functions.display_Game_Screen(),
+            Game_State.Ending_Screen => display_functions.display_Endingn_Screen(100),
         };
         frame_count += 1;
 
