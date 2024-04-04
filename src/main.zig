@@ -9,8 +9,8 @@ const raylib = @cImport({
 // Constant Variables and Structs
 // --------------------------------
 
-const NO_TILES_X = 50; 
-const NO_TILES_Y = 50; 
+const NO_TILES_X = 10; 
+const NO_TILES_Y = 10; 
 const SNAKE_WAIT_TIME = 0.5;
 
 const Game_State = enum {
@@ -30,7 +30,6 @@ const Snake = struct {
     head_y: i16,
     tail_x: i16,
     tail_y: i16,
-    direction: Direction,
 };
  
 const Tile = struct {
@@ -53,12 +52,20 @@ pub fn main() !void {
     _ = game_paused;
     var frame_count: u32 = 0;
 
+    const board = [_][NO_TILES_X]Tile {
+        [_]Tile {
+            Tile {
+                .has_movement = Direction.Null,
+            }
+        } ** NO_TILES_X,
+    } ** NO_TILES_Y;
+    board[NO_TILES_Y / 2][NO_TILES_X / 2] = Direction.Up;
+
     const snake = Snake {
         .head_x = NO_TILES_X / 2,
         .head_y = NO_TILES_Y / 2,
         .tail_x = NO_TILES_X / 2,
         .tail_y = NO_TILES_Y / 2,
-        .direction = Direction.Up,
     };
     _ = snake;
 
