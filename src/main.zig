@@ -76,22 +76,23 @@ pub fn main() !void {
         // --------------------------------
         // Update Step
         // --------------------------------
-        if (raylib.IsKeyReleased(raylib.KEY_ENTER)) {
-            game_state = switch (game_state) {
-                Game_State.Title_Screen => Game_State.Game_Screen,
-                Game_State.Game_Screen => Game_State.Ending_Screen,
-                Game_State.Ending_Screen => Game_State.Title_Screen,
-            };
-        }
-        // game_state = switch (game_state) {
-        //     Game_State.Title_Screen => {
-        //         if (raylib.IsKeyPressed(raylib.KEY_ENTER)) {
-        //             Game_State.Game_Screen;
-        //         }
-        //     },
-        //     Game_State.Game_Screen => Game_State.Ending_Screen,
-        //     Game_State.Ending_Screen => Game_State.Title_Screen,
-        // };
+        game_state = switch (game_state) {
+            Game_State.Title_Screen => blk: {
+                if (raylib.IsKeyPressed(raylib.KEY_ENTER)) {
+                    break :blk Game_State.Game_Screen;
+                }
+            },
+            Game_State.Game_Screen => blk: {
+                if (raylib.IsKeyPressed(raylib.KEY_ENTER)) {
+                    break :blk Game_State.Ending_Screen;
+                }
+            },
+            Game_State.Ending_Screen => blk: {
+                if (raylib.IsKeyPressed(raylib.KEY_ENTER)) {
+                    break :blk Game_State.Title_Screen;
+                }
+            },
+        };
         frame_count += 1;
 
         // --------------------------------
@@ -103,9 +104,9 @@ pub fn main() !void {
         raylib.ClearBackground(raylib.BLACK);
         
         try switch (game_state) {
-            Game_State.Title_Screen => display_functions.display_Title_Screen(&frame_count),
+            Game_State.Title_Screen => display_functions.display_Title_Screen(frame_count),
             Game_State.Game_Screen => display_functions.display_Game_Screen(),
-            Game_State.Ending_Screen => display_functions.display_Endingn_Screen(100),
+            Game_State.Ending_Screen => display_functions.display_Endingn_Screen(100, frame_count),
         };
     }
 }
