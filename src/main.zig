@@ -85,74 +85,64 @@ pub fn main() !void
             Game_State.Game_Screen => blk: {
                 var collision: bool = false;
 
-                // Move the snake
+                // Move the snakes tail
                 switch (board[snake.tail_x][snake.tail_y].has_movement) {
                     Direction.Up => {
-                        if (snake.tail_x - 1 == 0) {
-                            collision = true;
-                        } else {
-                            board[snake.tail_x][snake.tail_y].has_movement = Direction.Null;
-                            snake.tail_x -= 1;
-                        }
+                        board[snake.tail_x][snake.tail_y].has_movement = Direction.Null;
+                        snake.tail_x -= 1;
                     },
                     Direction.Down => {
-                        if (snake.tail_x + 1 == NO_TILES_X) {
-                            collision = true;
-                        } else {
-                            board[snake.tail_x][snake.tail_y].has_movement = Direction.Null;
-                            snake.tail_x += 1;
-                        }
+                        board[snake.tail_x][snake.tail_y].has_movement = Direction.Null;
+                        snake.tail_x += 1;
                     },
                     Direction.Left => {
-                        if (snake.tail_y - 1 == 0) {
-                            collision = true;
-                        } else {
-                            board[snake.tail_x][snake.tail_y].has_movement = Direction.Null;
-                            snake.tail_y -= 1;
-                        }
+                        board[snake.tail_x][snake.tail_y].has_movement = Direction.Null;
+                        snake.tail_y -= 1;
                     },
                     Direction.Right => {
-                        if (snake.tail_y + 1 == NO_TILES_Y) {
-                            collision = true;
-                        } else {
-                            board[snake.tail_x][snake.tail_y].has_movement = Direction.Null;
-                            snake.tail_y += 1;
-                        }
+                        board[snake.tail_x][snake.tail_y].has_movement = Direction.Null;
+                        snake.tail_y += 1;
                     },
                     Direction.Null => {},
                 }
-                switch (board[snake.tail_x][snake.tail_y].has_movement) {
+
+                // Move the snakes head
+                switch (board[snake.head_x][snake.head_y].has_movement) {
                     Direction.Up => {
-                        if (snake.tail_x - 1 == 0) {
+                        if (snake.head_x - 1 == -1 or board[snake.head_x - 1][snake.head_y].has_movement != Direction.Null) {
                             collision = true;
-                        } else {
-                            board[snake.tail_x][snake.tail_y].has_movement = Direction.Null;
-                            snake.tail_x -= 1;
+                            break;
                         }
+
+                        board[snake.head_x - 1][snake.head_y].has_movement = board[snake.head_x][snake.head_y].has_movement;
+                        snake.head_x -= 1;
                     },
                     Direction.Down => {
-                        if (snake.tail_x + 1 == NO_TILES_X) {
+                        if (snake.head_x + 1 == NO_TILES_X or board[snake.head_x + 1][snake.head_y].has_movement != Direction.Null) {
                             collision = true;
-                        } else {
-                            board[snake.tail_x][snake.tail_y].has_movement = Direction.Null;
-                            snake.tail_x += 1;
+                            break;
                         }
+
+                        board[snake.head_x + 1][snake.head_y].has_movement = board[snake.head_x][snake.head_y].has_movement;
+                        snake.head_x += 1;
                     },
                     Direction.Left => {
-                        if (snake.tail_y - 1 == 0) {
+                        if (snake.head_y - 1 == -1 or board[snake.head_x][snake.head_y - 1].has_movement != Direction.Null) {
                             collision = true;
-                        } else {
-                            board[snake.tail_x][snake.tail_y].has_movement = Direction.Null;
-                            snake.tail_y -= 1;
+                            break;
                         }
+
+                        board[snake.head_x][snake.head_y - 1].has_movement = board[snake.head_x][snake.head_y].has_movement;
+                        snake.head_y -= 1;
                     },
                     Direction.Right => {
-                        if (snake.tail_y + 1 == NO_TILES_Y) {
+                        if (snake.head_y + 1 == NO_TILES_Y or board[snake.head_x][snake.head_y + 1].has_movement != Direction.Null) {
                             collision = true;
-                        } else {
-                            board[snake.tail_x][snake.tail_y].has_movement = Direction.Null;
-                            snake.tail_y += 1;
+                            break;
                         }
+
+                        board[snake.head_x][snake.head_y + 1].has_movement = board[snake.head_x][snake.head_y].has_movement;
+                        snake.head_y += 1;
                     },
                     Direction.Null => {},
                 }
