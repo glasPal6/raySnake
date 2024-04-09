@@ -28,17 +28,18 @@ const Direction = enum {
 };
 
 const Snake = struct {
-    head_x: i16,
-    head_y: i16,
-    tail_x: i16,
-    tail_y: i16,
+    head_x: u16,
+    head_y: u16,
+    tail_x: u16,
+    tail_y: u16,
 };
  
 const Tile = struct {
     has_movement: Direction, 
 };
 
-pub fn main() !void {
+pub fn main() !void 
+{
     // --------------------------------
     // Initialize the window and close it at the end
     // --------------------------------
@@ -48,8 +49,6 @@ pub fn main() !void {
 
     // Define the variables
     var game_state: Game_State = Game_State.Title_Screen;
-    var game_paused: bool = false;
-    _ = game_paused;
     var frame_count: u32 = 0;
 
     var board = [_][NO_TILES_X]Tile {
@@ -57,9 +56,9 @@ pub fn main() !void {
             Tile {
                 .has_movement = Direction.Null,
             }
-        } ** NO_TILES_X,
-    } ** NO_TILES_Y;
-    board[NO_TILES_Y / 2][NO_TILES_X / 2].has_movement = Direction.Up;
+        } ** NO_TILES_Y,
+    } ** NO_TILES_X;
+    board[NO_TILES_X / 2][NO_TILES_Y / 2].has_movement = Direction.Up;
 
     var snake = Snake {
         .head_x = NO_TILES_X / 2,
@@ -67,7 +66,8 @@ pub fn main() !void {
         .tail_x = NO_TILES_X / 2,
         .tail_y = NO_TILES_Y / 2,
     };
-    _ = snake;
+
+    var score: u16 = 0;
 
     raylib.SetTargetFPS(60);
 
@@ -83,7 +83,82 @@ pub fn main() !void {
                 }
             },
             Game_State.Game_Screen => blk: {
-                if (raylib.IsKeyPressed(raylib.KEY_ENTER)) {
+                var collision: bool = false;
+
+                // Move the snake
+                switch (board[snake.tail_x][snake.tail_y].has_movement) {
+                    Direction.Up => {
+                        if (snake.tail_x - 1 == 0) {
+                            collision = true;
+                        } else {
+                            board[snake.tail_x][snake.tail_y].has_movement = Direction.Null;
+                            snake.tail_x -= 1;
+                        }
+                    },
+                    Direction.Down => {
+                        if (snake.tail_x + 1 == NO_TILES_X) {
+                            collision = true;
+                        } else {
+                            board[snake.tail_x][snake.tail_y].has_movement = Direction.Null;
+                            snake.tail_x += 1;
+                        }
+                    },
+                    Direction.Left => {
+                        if (snake.tail_y - 1 == 0) {
+                            collision = true;
+                        } else {
+                            board[snake.tail_x][snake.tail_y].has_movement = Direction.Null;
+                            snake.tail_y -= 1;
+                        }
+                    },
+                    Direction.Right => {
+                        if (snake.tail_y + 1 == NO_TILES_Y) {
+                            collision = true;
+                        } else {
+                            board[snake.tail_x][snake.tail_y].has_movement = Direction.Null;
+                            snake.tail_y += 1;
+                        }
+                    },
+                    Direction.Null => {},
+                }
+                switch (board[snake.tail_x][snake.tail_y].has_movement) {
+                    Direction.Up => {
+                        if (snake.tail_x - 1 == 0) {
+                            collision = true;
+                        } else {
+                            board[snake.tail_x][snake.tail_y].has_movement = Direction.Null;
+                            snake.tail_x -= 1;
+                        }
+                    },
+                    Direction.Down => {
+                        if (snake.tail_x + 1 == NO_TILES_X) {
+                            collision = true;
+                        } else {
+                            board[snake.tail_x][snake.tail_y].has_movement = Direction.Null;
+                            snake.tail_x += 1;
+                        }
+                    },
+                    Direction.Left => {
+                        if (snake.tail_y - 1 == 0) {
+                            collision = true;
+                        } else {
+                            board[snake.tail_x][snake.tail_y].has_movement = Direction.Null;
+                            snake.tail_y -= 1;
+                        }
+                    },
+                    Direction.Right => {
+                        if (snake.tail_y + 1 == NO_TILES_Y) {
+                            collision = true;
+                        } else {
+                            board[snake.tail_x][snake.tail_y].has_movement = Direction.Null;
+                            snake.tail_y += 1;
+                        }
+                    },
+                    Direction.Null => {},
+                }
+
+                // Change the game state if the snake collides
+                if (collision) {
                     break :blk Game_State.Ending_Screen;
                 }
             },
@@ -106,7 +181,7 @@ pub fn main() !void {
         try switch (game_state) {
             Game_State.Title_Screen => display_functions.display_Title_Screen(frame_count),
             Game_State.Game_Screen => display_functions.display_Game_Screen(),
-            Game_State.Ending_Screen => display_functions.display_Endingn_Screen(100, frame_count),
+            Game_State.Ending_Screen => display_functions.display_Endingn_Screen(score, frame_count),
         };
     }
 }
