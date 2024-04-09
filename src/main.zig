@@ -9,6 +9,8 @@ const raylib = @cImport({
 // Constant Variables and Structs
 // --------------------------------
 
+const SCREEN_WIDTH = 800;
+const SCREEN_HEIGHT = 800;
 const NO_TILES_X = 10; 
 const NO_TILES_Y = 10; 
 const SNAKE_WAIT_TIME = 0.5;
@@ -40,10 +42,8 @@ pub fn main() !void {
     // --------------------------------
     // Initialize the window and close it at the end
     // --------------------------------
-    const screen_width: i16 = 800;
-    const screen_height: i16 = 800;
 
-    raylib.InitWindow(screen_width, screen_height, "Snake!");
+    raylib.InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Snake!");
     defer raylib.CloseWindow();
 
     // Define the variables
@@ -52,16 +52,16 @@ pub fn main() !void {
     _ = game_paused;
     var frame_count: u32 = 0;
 
-    const board = [_][NO_TILES_X]Tile {
+    var board = [_][NO_TILES_X]Tile {
         [_]Tile {
             Tile {
                 .has_movement = Direction.Null,
             }
         } ** NO_TILES_X,
     } ** NO_TILES_Y;
-    board[NO_TILES_Y / 2][NO_TILES_X / 2] = Direction.Up;
+    board[NO_TILES_Y / 2][NO_TILES_X / 2].has_movement = Direction.Up;
 
-    const snake = Snake {
+    var snake = Snake {
         .head_x = NO_TILES_X / 2,
         .head_y = NO_TILES_Y / 2,
         .tail_x = NO_TILES_X / 2,
@@ -83,6 +83,15 @@ pub fn main() !void {
                 Game_State.Ending_Screen => Game_State.Title_Screen,
             };
         }
+        // game_state = switch (game_state) {
+        //     Game_State.Title_Screen => {
+        //         if (raylib.IsKeyPressed(raylib.KEY_ENTER)) {
+        //             Game_State.Game_Screen;
+        //         }
+        //     },
+        //     Game_State.Game_Screen => Game_State.Ending_Screen,
+        //     Game_State.Ending_Screen => Game_State.Title_Screen,
+        // };
         frame_count += 1;
 
         // --------------------------------
