@@ -12,7 +12,7 @@ const SCREEN_WIDTH = 800;
 const SCREEN_HEIGHT = 800;
 const NO_TILES_X = 10; 
 const NO_TILES_Y = 10; 
-const SNAKE_WAIT_TIME = 0.5;
+const SNAKE_WAIT_TIME = 1;
 
 const Game_State = enum {
     Title_Screen,
@@ -177,14 +177,14 @@ pub fn main() !void
             }
         } ** NO_TILES_Y,
     } ** NO_TILES_X;
-    board[NO_TILES_X / 2][NO_TILES_Y / 2].has_movement = Direction.Down;
-    board[NO_TILES_X / 2 - 1][NO_TILES_Y / 2].has_movement = Direction.Down;
+    board[NO_TILES_X / 2][NO_TILES_Y / 2].has_movement = Direction.Right;
+    board[NO_TILES_X / 2][NO_TILES_Y / 2 - 1].has_movement = Direction.Right;
 
     var snake = Snake {
         .head_x = NO_TILES_X / 2,
         .head_y = NO_TILES_Y / 2,
-        .tail_x = NO_TILES_X / 2 - 1,
-        .tail_y = NO_TILES_Y / 2,
+        .tail_x = NO_TILES_X / 2,
+        .tail_y = NO_TILES_Y / 2 - 1,
     };
 
     var score: u16 = 0;
@@ -203,32 +203,16 @@ pub fn main() !void
                 }
             },
             Game_State.Game_Screen => blk: {
-                std.debug.print("\n", .{});
-                for (0..NO_TILES_X) |i| {
-                    for (0..NO_TILES_Y) |j| {
-                        if (i == snake.head_x and j == snake.head_y) {
-                            std.debug.print("h", .{});
-                        } else if (i == snake.tail_x and j == snake.head_y) {
-                            std.debug.print("t", .{});
-                        } else if (board[i][j].has_movement != Direction.Null) {
-                            std.debug.print("*", .{});
-                        } else {
-                            std.debug.print("#", .{});
-                        }
+                if (frame_count % (60 * SNAKE_WAIT_TIME) == 0) {
+                    // Move the snakes head
+                    var collision: bool = update_Snake_Head(&board, &snake);
+                    if (collision) {
+                        break :blk Game_State.Ending_Screen;
+                    }
 
-                    } 
-                    std.debug.print("\n", .{});
+                    // Move the snakes tail
+                    update_Snake_Tail(&board, &snake);
                 }
-
-                // Move the snakes head
-                var collision: bool = update_Snake_Head(&board, &snake);
-                if (collision) {
-                    break :blk Game_State.Ending_Screen;
-                }
-
-                // Move the snakes tail
-                update_Snake_Tail(&board, &snake);
-
             },
             Game_State.Ending_Screen => blk: {
                 if (raylib.IsKeyPressed(raylib.KEY_ENTER)) {
