@@ -1,5 +1,4 @@
 const std = @import("std");
-const display_functions = @import("display_functions.zig");
 
 const raylib = @cImport({
     @cInclude("raylib.h");
@@ -38,6 +37,126 @@ const Tile = struct {
     has_movement: Direction, 
 };
 
+// --------------------------------
+// Update Functions
+// --------------------------------
+
+fn update_Snake_Head(board: *[NO_TILES_X][NO_TILES_Y]Tile, snake: *Snake) bool
+{
+    switch (board[snake.head_x][snake.head_y].has_movement) {
+        Direction.Up => {
+            if (snake.head_x == 0 or board[snake.head_x - 1][snake.head_y].has_movement != Direction.Null) {
+                return true;
+            }
+
+            board[snake.head_x - 1][snake.head_y].has_movement = board[snake.head_x][snake.head_y].has_movement;
+            snake.head_x -= 1;
+        },
+        Direction.Down => {
+            if (snake.head_x + 1 == NO_TILES_X or board[snake.head_x + 1][snake.head_y].has_movement != Direction.Null) {
+                return true;
+            }
+
+            board[snake.head_x + 1][snake.head_y].has_movement = board[snake.head_x][snake.head_y].has_movement;
+            snake.head_x += 1;
+        },
+        Direction.Left => {
+            if (snake.head_y == 0 or board[snake.head_x][snake.head_y - 1].has_movement != Direction.Null) {
+                return true;
+            }
+
+            board[snake.head_x][snake.head_y - 1].has_movement = board[snake.head_x][snake.head_y].has_movement;
+            snake.head_y -= 1;
+        },
+        Direction.Right => {
+            if (snake.head_y + 1 == NO_TILES_Y or board[snake.head_x][snake.head_y + 1].has_movement != Direction.Null) {
+                return true;
+            }
+
+            board[snake.head_x][snake.head_y + 1].has_movement = board[snake.head_x][snake.head_y].has_movement;
+            snake.head_y += 1;
+        },
+        Direction.Null => {},
+    }
+    return false;
+}
+
+fn update_Snake_Tail(board: *[NO_TILES_X][NO_TILES_Y]Tile, snake: *Snake) void
+{
+    switch (board[snake.tail_x][snake.tail_y].has_movement) {
+        Direction.Up => {
+            board[snake.tail_x][snake.tail_y].has_movement = Direction.Null;
+            snake.tail_x -= 1;
+        },
+        Direction.Down => {
+            board[snake.tail_x][snake.tail_y].has_movement = Direction.Null;
+            snake.tail_x += 1;
+        },
+        Direction.Left => {
+            board[snake.tail_x][snake.tail_y].has_movement = Direction.Null;
+            snake.tail_y -= 1;
+        },
+        Direction.Right => {
+            board[snake.tail_x][snake.tail_y].has_movement = Direction.Null;
+            snake.tail_y += 1;
+        },
+        Direction.Null => {},
+    }
+}
+
+// --------------------------------
+// Display Functions
+// --------------------------------
+
+pub fn display_Title_Screen(frame_count: u32) void 
+{
+    // Draw the title screen
+    raylib.DrawText("SNAKE",
+                    @divFloor(raylib.GetScreenWidth(), 2) - @divFloor(raylib.MeasureText("SNAKE", 80), 2),
+                    @divFloor(raylib.GetScreenHeight(), 2) - 100, 
+                    80, raylib.GREEN
+    );
+    raylib.DrawText("Use the arrow keys to navigate",
+                    @divFloor(raylib.GetScreenWidth(), 2) - @divFloor(raylib.MeasureText("Use the arrow keys to navigate", 20), 2),
+                    @divFloor(raylib.GetScreenHeight(), 2) - 10, 
+                    20, raylib.GREEN
+    );
+    if ((frame_count / 30) % 2 == 0) {
+        raylib.DrawText("Press [Enter] to start",
+                        @divFloor(raylib.GetScreenWidth(), 2) - @divFloor(raylib.MeasureText("Press [Enter] to start", 20), 2),
+                        @divFloor(raylib.GetScreenHeight(), 2) + 20, 
+                        20, raylib.GREEN
+        );
+    }
+}
+
+pub fn display_Game_Screen() void 
+{
+    raylib.DrawText("Game Screen", 10, 10, 20, raylib.RED);
+}
+
+pub fn display_Endingn_Screen(score: u16, frame_count: u32) !void 
+{
+    // Display the score on the screen
+    var score_buf: [3]u8 = undefined;
+    const score_str = try std.fmt.bufPrint(&score_buf, "{}", .{score});
+    raylib.DrawText(@ptrCast(score_str), 
+                    @divFloor(raylib.GetScreenWidth(), 2) - @divFloor(raylib.MeasureText(@ptrCast(score_str), 80), 2),
+                    @divFloor(raylib.GetScreenHeight(), 2) - 100, 
+                    80, raylib.GREEN
+    );
+    if ((frame_count / 30) % 2 == 0) {
+        raylib.DrawText("Press [Enter] to start",
+                        @divFloor(raylib.GetScreenWidth(), 2) - @divFloor(raylib.MeasureText("Press [Enter] to start", 20), 2),
+                        @divFloor(raylib.GetScreenHeight(), 2) + 20, 
+                        20, raylib.GREEN
+        );
+    }
+}
+
+// --------------------------------
+// Main
+// --------------------------------
 pub fn main() !void 
 {
     // --------------------------------
@@ -58,12 +177,13 @@ pub fn main() !void
             }
         } ** NO_TILES_Y,
     } ** NO_TILES_X;
-    board[NO_TILES_X / 2][NO_TILES_Y / 2].has_movement = Direction.Up;
+    board[NO_TILES_X / 2][NO_TILES_Y / 2].has_movement = Direction.Down;
+    board[NO_TILES_X / 2 - 1][NO_TILES_Y / 2].has_movement = Direction.Down;
 
     var snake = Snake {
         .head_x = NO_TILES_X / 2,
         .head_y = NO_TILES_Y / 2,
-        .tail_x = NO_TILES_X / 2,
+        .tail_x = NO_TILES_X / 2 - 1,
         .tail_y = NO_TILES_Y / 2,
     };
 
@@ -83,74 +203,32 @@ pub fn main() !void
                 }
             },
             Game_State.Game_Screen => blk: {
-                var collision: bool = false;
+                std.debug.print("\n", .{});
+                for (0..NO_TILES_X) |i| {
+                    for (0..NO_TILES_Y) |j| {
+                        if (i == snake.head_x and j == snake.head_y) {
+                            std.debug.print("h", .{});
+                        } else if (i == snake.tail_x and j == snake.head_y) {
+                            std.debug.print("t", .{});
+                        } else if (board[i][j].has_movement != Direction.Null) {
+                            std.debug.print("*", .{});
+                        } else {
+                            std.debug.print("#", .{});
+                        }
 
-                // Move the snakes tail
-                switch (board[snake.tail_x][snake.tail_y].has_movement) {
-                    Direction.Up => {
-                        board[snake.tail_x][snake.tail_y].has_movement = Direction.Null;
-                        snake.tail_x -= 1;
-                    },
-                    Direction.Down => {
-                        board[snake.tail_x][snake.tail_y].has_movement = Direction.Null;
-                        snake.tail_x += 1;
-                    },
-                    Direction.Left => {
-                        board[snake.tail_x][snake.tail_y].has_movement = Direction.Null;
-                        snake.tail_y -= 1;
-                    },
-                    Direction.Right => {
-                        board[snake.tail_x][snake.tail_y].has_movement = Direction.Null;
-                        snake.tail_y += 1;
-                    },
-                    Direction.Null => {},
+                    } 
+                    std.debug.print("\n", .{});
                 }
 
                 // Move the snakes head
-                switch (board[snake.head_x][snake.head_y].has_movement) {
-                    Direction.Up => {
-                        if (snake.head_x - 1 == -1 or board[snake.head_x - 1][snake.head_y].has_movement != Direction.Null) {
-                            collision = true;
-                            break;
-                        }
-
-                        board[snake.head_x - 1][snake.head_y].has_movement = board[snake.head_x][snake.head_y].has_movement;
-                        snake.head_x -= 1;
-                    },
-                    Direction.Down => {
-                        if (snake.head_x + 1 == NO_TILES_X or board[snake.head_x + 1][snake.head_y].has_movement != Direction.Null) {
-                            collision = true;
-                            break;
-                        }
-
-                        board[snake.head_x + 1][snake.head_y].has_movement = board[snake.head_x][snake.head_y].has_movement;
-                        snake.head_x += 1;
-                    },
-                    Direction.Left => {
-                        if (snake.head_y - 1 == -1 or board[snake.head_x][snake.head_y - 1].has_movement != Direction.Null) {
-                            collision = true;
-                            break;
-                        }
-
-                        board[snake.head_x][snake.head_y - 1].has_movement = board[snake.head_x][snake.head_y].has_movement;
-                        snake.head_y -= 1;
-                    },
-                    Direction.Right => {
-                        if (snake.head_y + 1 == NO_TILES_Y or board[snake.head_x][snake.head_y + 1].has_movement != Direction.Null) {
-                            collision = true;
-                            break;
-                        }
-
-                        board[snake.head_x][snake.head_y + 1].has_movement = board[snake.head_x][snake.head_y].has_movement;
-                        snake.head_y += 1;
-                    },
-                    Direction.Null => {},
-                }
-
-                // Change the game state if the snake collides
+                var collision: bool = update_Snake_Head(&board, &snake);
                 if (collision) {
                     break :blk Game_State.Ending_Screen;
                 }
+
+                // Move the snakes tail
+                update_Snake_Tail(&board, &snake);
+
             },
             Game_State.Ending_Screen => blk: {
                 if (raylib.IsKeyPressed(raylib.KEY_ENTER)) {
@@ -169,9 +247,9 @@ pub fn main() !void
         raylib.ClearBackground(raylib.BLACK);
         
         try switch (game_state) {
-            Game_State.Title_Screen => display_functions.display_Title_Screen(frame_count),
-            Game_State.Game_Screen => display_functions.display_Game_Screen(),
-            Game_State.Ending_Screen => display_functions.display_Endingn_Screen(score, frame_count),
+            Game_State.Title_Screen => display_Title_Screen(frame_count),
+            Game_State.Game_Screen => display_Game_Screen(),
+            Game_State.Ending_Screen => display_Endingn_Screen(score, frame_count),
         };
     }
 }
