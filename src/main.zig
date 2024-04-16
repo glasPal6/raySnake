@@ -108,7 +108,7 @@ fn update_Snake_Tail(board: *[NO_TILES_X][NO_TILES_Y]Tile, snake: *Snake) void
 // Display Functions
 // --------------------------------
 
-pub fn display_Title_Screen(frame_count: u32) void 
+fn display_Title_Screen(frame_count: u32) void 
 {
     // Draw the title screen
     raylib.DrawText("SNAKE",
@@ -130,12 +130,29 @@ pub fn display_Title_Screen(frame_count: u32) void
     }
 }
 
-pub fn display_Game_Screen() void 
+fn display_Game_Screen(board: *[NO_TILES_X][NO_TILES_Y]Tile, snake: *Snake) void 
 {
-    raylib.DrawText("Game Screen", 10, 10, 20, raylib.RED);
+    const TILE_WIDTH = SCREEN_WIDTH / NO_TILES_X;
+    const TILE_HEIGHT = SCREEN_HEIGHT / NO_TILES_Y;
+
+    for (0..NO_TILES_X) |i| {
+        const pos_x: c_int = @intCast(i);
+        for (0..NO_TILES_Y) |j| {
+            const pos_y: c_int = @intCast(j); 
+            if (i == snake.head_x and j == snake.head_y) {
+                raylib.DrawRectangle(pos_x * TILE_WIDTH, pos_y * TILE_HEIGHT, TILE_WIDTH, TILE_HEIGHT, raylib.RED);
+            } else if (i == snake.tail_x and j == snake.tail_y) {
+                raylib.DrawRectangle(pos_x * TILE_WIDTH, pos_y * TILE_HEIGHT, TILE_WIDTH, TILE_HEIGHT, raylib.YELLOW);
+            } else if (board[i][j].has_movement != Direction.Null) {
+                raylib.DrawRectangle(pos_x * TILE_WIDTH, pos_y * TILE_HEIGHT, TILE_WIDTH, TILE_HEIGHT, raylib.GREEN);
+            } else {
+                raylib.DrawRectangle(pos_x * TILE_WIDTH, pos_y * TILE_HEIGHT, TILE_WIDTH, TILE_HEIGHT, raylib.BLACK);
+            }
+        }
+    }
 }
 
-pub fn display_Endingn_Screen(score: u16, frame_count: u32) !void 
+fn display_Endingn_Screen(score: u16, frame_count: u32) !void 
 {
     // Display the score on the screen
     var score_buf: [3]u8 = undefined;
@@ -232,7 +249,7 @@ pub fn main() !void
         
         try switch (game_state) {
             Game_State.Title_Screen => display_Title_Screen(frame_count),
-            Game_State.Game_Screen => display_Game_Screen(),
+            Game_State.Game_Screen => display_Game_Screen(&board, &snake),
             Game_State.Ending_Screen => display_Endingn_Screen(score, frame_count),
         };
     }
