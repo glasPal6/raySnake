@@ -134,19 +134,19 @@ fn display_Game_Screen(board: *[NO_TILES_X][NO_TILES_Y]Tile, snake: *Snake) void
 {
     const TILE_WIDTH = SCREEN_WIDTH / NO_TILES_X;
     const TILE_HEIGHT = SCREEN_HEIGHT / NO_TILES_Y;
-
+    
     for (0..NO_TILES_X) |i| {
         const pos_x: c_int = @intCast(i);
         for (0..NO_TILES_Y) |j| {
             const pos_y: c_int = @intCast(j); 
             if (i == snake.head_x and j == snake.head_y) {
-                raylib.DrawRectangle(pos_x * TILE_WIDTH, pos_y * TILE_HEIGHT, TILE_WIDTH, TILE_HEIGHT, raylib.RED);
+                raylib.DrawRectangle(pos_y * TILE_HEIGHT, pos_x * TILE_WIDTH, TILE_WIDTH, TILE_HEIGHT, raylib.RED);
             } else if (i == snake.tail_x and j == snake.tail_y) {
-                raylib.DrawRectangle(pos_x * TILE_WIDTH, pos_y * TILE_HEIGHT, TILE_WIDTH, TILE_HEIGHT, raylib.YELLOW);
+                raylib.DrawRectangle(pos_y * TILE_HEIGHT, pos_x * TILE_WIDTH, TILE_WIDTH, TILE_HEIGHT, raylib.YELLOW);
             } else if (board[i][j].has_movement != Direction.Null) {
-                raylib.DrawRectangle(pos_x * TILE_WIDTH, pos_y * TILE_HEIGHT, TILE_WIDTH, TILE_HEIGHT, raylib.GREEN);
+                raylib.DrawRectangle(pos_y * TILE_HEIGHT, pos_x * TILE_WIDTH, TILE_WIDTH, TILE_HEIGHT, raylib.GREEN);
             } else {
-                raylib.DrawRectangle(pos_x * TILE_WIDTH, pos_y * TILE_HEIGHT, TILE_WIDTH, TILE_HEIGHT, raylib.BLACK);
+                raylib.DrawRectangle(pos_y * TILE_HEIGHT, pos_x * TILE_WIDTH, TILE_WIDTH, TILE_HEIGHT, raylib.BLACK);
             }
         }
     }
@@ -220,6 +220,17 @@ pub fn main() !void
                 }
             },
             Game_State.Game_Screen => blk: {
+                // Update the direction
+                if (raylib.IsKeyReleased(raylib.KEY_Q)) { 
+                    board[snake.head_x][snake.head_y].has_movement = Direction.Up;
+                } else if (raylib.IsKeyReleased(raylib.KEY_E)) {
+                    board[snake.head_x][snake.head_y].has_movement = Direction.Down;
+                } else if (raylib.IsKeyReleased(raylib.KEY_A)) {
+                    board[snake.head_x][snake.head_y].has_movement = Direction.Left;
+                } else if (raylib.IsKeyReleased(raylib.KEY_I)) {
+                    board[snake.head_x][snake.head_y].has_movement = Direction.Right;
+                }
+                // Update the snakes movement
                 if (frame_count % (60 * SNAKE_WAIT_TIME) == 0) {
                     // Move the snakes head
                     var collision: bool = update_Snake_Head(&board, &snake);
@@ -233,6 +244,25 @@ pub fn main() !void
             },
             Game_State.Ending_Screen => blk: {
                 if (raylib.IsKeyPressed(raylib.KEY_ENTER)) {
+                    board = [_][NO_TILES_X]Tile {
+                        [_]Tile {
+                            Tile {
+                                .has_movement = Direction.Null,
+                            }
+                        } ** NO_TILES_Y,
+                    } ** NO_TILES_X;
+                    board[NO_TILES_X / 2][NO_TILES_Y / 2].has_movement = Direction.Right;
+                    board[NO_TILES_X / 2][NO_TILES_Y / 2 - 1].has_movement = Direction.Right;
+
+                    snake = Snake {
+                        .head_x = NO_TILES_X / 2,
+                        .head_y = NO_TILES_Y / 2,
+                        .tail_x = NO_TILES_X / 2,
+                        .tail_y = NO_TILES_Y / 2 - 1,
+                    };
+
+                    score = 0;
+
                     break :blk Game_State.Title_Screen;
                 }
             },
