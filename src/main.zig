@@ -28,7 +28,8 @@ const Game_State = enum {
 const Direction = enum {
     Up, Down,
     Left, Right,
-    Null
+    CONSTANT, 
+    Null,
 };
 
 const Snake = struct {
@@ -140,16 +141,22 @@ fn display_Game_Screen(board: *[NO_TILES_X][NO_TILES_Y]Tile, snake: *Snake) void
     const TILE_WIDTH = SCREEN_WIDTH / NO_TILES_X;
     const TILE_HEIGHT = SCREEN_HEIGHT / NO_TILES_Y;
     
+    // Draw the board
     for (0..NO_TILES_X) |i| {
         const pos_x: c_int = @intCast(i);
         for (0..NO_TILES_Y) |j| {
             const pos_y: c_int = @intCast(j); 
+            // Snake
             if (i == snake.head_x and j == snake.head_y) {
-                raylib.DrawRectangle(pos_y * TILE_HEIGHT, pos_x * TILE_WIDTH, TILE_WIDTH, TILE_HEIGHT, raylib.RED);
+                raylib.DrawRectangle(pos_y * TILE_HEIGHT, pos_x * TILE_WIDTH, TILE_WIDTH, TILE_HEIGHT, raylib.PURPLE);
             } else if (i == snake.tail_x and j == snake.tail_y) {
                 raylib.DrawRectangle(pos_y * TILE_HEIGHT, pos_x * TILE_WIDTH, TILE_WIDTH, TILE_HEIGHT, raylib.YELLOW);
-            } else if (board[i][j].has_movement != Direction.Null) {
+            } else if (board[i][j].has_movement != Direction.Null and board[i][j].has_movement != Direction.CONSTANT) {
                 raylib.DrawRectangle(pos_y * TILE_HEIGHT, pos_x * TILE_WIDTH, TILE_WIDTH, TILE_HEIGHT, raylib.GREEN);
+            // Food
+            } else if (board[i][j].has_movement == Direction.CONSTANT) {
+                raylib.DrawRectangle(pos_y * TILE_HEIGHT, pos_x * TILE_WIDTH, TILE_WIDTH, TILE_HEIGHT, raylib.RED);
+            // Nothing
             } else {
                 raylib.DrawRectangle(pos_y * TILE_HEIGHT, pos_x * TILE_WIDTH, TILE_WIDTH, TILE_HEIGHT, raylib.BLACK);
             }
@@ -235,10 +242,16 @@ pub fn main() !void
                 } else if (raylib.IsKeyReleased(SNAKE_RIGHT)) {
                     board[snake.head_x][snake.head_y].has_movement = Direction.Right;
                 }
+
                 // Update the snakes movement
                 if (frame_count % SNAKE_WAIT_TIME == 0) {
+                    // Place the food
+
                     // Move the snakes head
                     var collision: bool = update_Snake_Head(&board, &snake);
+                    
+                    // Check if the collision is not with food
+
                     if (collision) {
                         break :blk Game_State.Ending_Screen;
                     }
