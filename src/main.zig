@@ -28,7 +28,7 @@ const Game_State = enum {
 const Direction = enum {
     Up, Down,
     Left, Right,
-    CONSTANT, 
+    Constant, 
     Null,
 };
 
@@ -82,7 +82,7 @@ fn update_Snake_Head(board: *[NO_TILES_X][NO_TILES_Y]Tile, snake: *Snake) bool
             board[snake.head_x][snake.head_y + 1].has_movement = board[snake.head_x][snake.head_y].has_movement;
             snake.head_y += 1;
         },
-        Direction.Null => {},
+        Direction.Constant , Direction.Null => {},
     }
     return false;
 }
@@ -106,7 +106,7 @@ fn update_Snake_Tail(board: *[NO_TILES_X][NO_TILES_Y]Tile, snake: *Snake) void
             board[snake.tail_x][snake.tail_y].has_movement = Direction.Null;
             snake.tail_y += 1;
         },
-        Direction.Null => {},
+        Direction.Constant , Direction.Null => {},
     }
 }
 
@@ -151,10 +151,10 @@ fn display_Game_Screen(board: *[NO_TILES_X][NO_TILES_Y]Tile, snake: *Snake) void
                 raylib.DrawRectangle(pos_y * TILE_HEIGHT, pos_x * TILE_WIDTH, TILE_WIDTH, TILE_HEIGHT, raylib.PURPLE);
             } else if (i == snake.tail_x and j == snake.tail_y) {
                 raylib.DrawRectangle(pos_y * TILE_HEIGHT, pos_x * TILE_WIDTH, TILE_WIDTH, TILE_HEIGHT, raylib.YELLOW);
-            } else if (board[i][j].has_movement != Direction.Null and board[i][j].has_movement != Direction.CONSTANT) {
+            } else if (board[i][j].has_movement != Direction.Null and board[i][j].has_movement != Direction.Constant) {
                 raylib.DrawRectangle(pos_y * TILE_HEIGHT, pos_x * TILE_WIDTH, TILE_WIDTH, TILE_HEIGHT, raylib.GREEN);
             // Food
-            } else if (board[i][j].has_movement == Direction.CONSTANT) {
+            } else if (board[i][j].has_movement == Direction.Constant) {
                 raylib.DrawRectangle(pos_y * TILE_HEIGHT, pos_x * TILE_WIDTH, TILE_WIDTH, TILE_HEIGHT, raylib.RED);
             // Nothing
             } else {
@@ -191,6 +191,12 @@ pub fn main() !void
     // --------------------------------
     // Initialize the window and close it at the end
     // --------------------------------
+    var prng = std.rand.DefaultPrng.init(blk: {
+        var seed: u64 = undefined;
+        try std.os.getrandom(std.mem.asBytes(&seed));
+        break :blk seed;
+    });
+    const rand = prng.random();
 
     raylib.InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Snake!");
     defer raylib.CloseWindow();
@@ -217,6 +223,7 @@ pub fn main() !void
     };
 
     var score: u16 = 0;
+    var food: bool = true;
 
     raylib.SetTargetFPS(60);
 
@@ -245,14 +252,43 @@ pub fn main() !void
 
                 // Update the snakes movement
                 if (frame_count % SNAKE_WAIT_TIME == 0) {
+                    var end_Game: bool = false;
                     // Place the food
+                    if (food) {
+                        var locations_x: [NO_TILES_X * NO_TILES_Y]u32 = [_]u32 {0} ** (NO_TILES_X * NO_TILES_Y);
+                        var locations_y: [NO_TILES_X * NO_TILES_Y]u32 = [_]u32 {0} ** (NO_TILES_X * NO_TILES_Y);
+                        var count: u16 = 0;
+                        for (0..NO_TILES_X) |i| {
+                            for (0..NO_TILES_Y) |j| {
+                                if (board[i][j].has_movement == Direction.Null) {
+                                    locations_x[count] = @intCast(i);
+                                    locations_y[count] = @intCast(j);
+                                    count += 1;
+                                }
+                            }
+                        }
+                        if (count == 0) {
+                            end_Game = true;
+                        } else {
+                            const pos: u16 = rand.intRangeAtMost(u16, 0, count);
+                            board[locations_x[pos]][locations_y[pos]].has_movement = Direction.Constant;
+                        }
+                        food = false;
+                    }
 
                     // Move the snakes head
                     var collision: bool = update_Snake_Head(&board, &snake);
                     
                     // Check if the collision is not with food
+                    if (collision and board[snake.head_x][snake.head_y].has_movement == Direction.Constant) {
+                        score += 1;
+                        collision = false;
+                        food = true;
+                    } else if (collision) {
+                        end_Game = true;
+                    }
 
-                    if (collision) {
+                    if (end_Game) {
                         break :blk Game_State.Ending_Screen;
                     }
 
