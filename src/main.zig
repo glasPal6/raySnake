@@ -14,6 +14,11 @@ const NO_TILES_X = 40;
 const NO_TILES_Y = 40; 
 const SNAKE_WAIT_TIME: u32 = 60 * 0.25;
 
+const SNAKE_UP      = raylib.KEY_Q;
+const SNAKE_DOWN    = raylib.KEY_E;
+const SNAKE_LEFT    = raylib.KEY_A;
+const SNAKE_RIGHT   = raylib.KEY_I;
+
 const Game_State = enum {
     Title_Screen,
     Game_Screen,
@@ -221,13 +226,13 @@ pub fn main() !void
             },
             Game_State.Game_Screen => blk: {
                 // Update the direction
-                if (raylib.IsKeyReleased(raylib.KEY_Q)) { 
+                if (raylib.IsKeyReleased(SNAKE_UP)) { 
                     board[snake.head_x][snake.head_y].has_movement = Direction.Up;
-                } else if (raylib.IsKeyReleased(raylib.KEY_E)) {
+                } else if (raylib.IsKeyReleased(SNAKE_DOWN)) {
                     board[snake.head_x][snake.head_y].has_movement = Direction.Down;
-                } else if (raylib.IsKeyReleased(raylib.KEY_A)) {
+                } else if (raylib.IsKeyReleased(SNAKE_LEFT)) {
                     board[snake.head_x][snake.head_y].has_movement = Direction.Left;
-                } else if (raylib.IsKeyReleased(raylib.KEY_I)) {
+                } else if (raylib.IsKeyReleased(SNAKE_RIGHT)) {
                     board[snake.head_x][snake.head_y].has_movement = Direction.Right;
                 }
                 // Update the snakes movement
