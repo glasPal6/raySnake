@@ -21,7 +21,7 @@ The snake is controlled with: \
 - `q` for up
 - `e` for down
 - `a` for left
-- `i` for right
+- `i` for right \
 These can be changed in the constants at the top of main.zig. \
 The pace of the snake and the size of the board can also be set in the constants.
 
