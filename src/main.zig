@@ -10,9 +10,9 @@ const raylib = @cImport({
 
 const SCREEN_WIDTH = 800;
 const SCREEN_HEIGHT = 800;
-const NO_TILES_X = 10; 
-const NO_TILES_Y = 10; 
-const SNAKE_WAIT_TIME = 1;
+const NO_TILES_X = 40; 
+const NO_TILES_Y = 40; 
+const SNAKE_WAIT_TIME: u32 = 60 * 0.25;
 
 const Game_State = enum {
     Title_Screen,
@@ -231,7 +231,7 @@ pub fn main() !void
                     board[snake.head_x][snake.head_y].has_movement = Direction.Right;
                 }
                 // Update the snakes movement
-                if (frame_count % (60 * SNAKE_WAIT_TIME) == 0) {
+                if (frame_count % SNAKE_WAIT_TIME == 0) {
                     // Move the snakes head
                     var collision: bool = update_Snake_Head(&board, &snake);
                     if (collision) {
