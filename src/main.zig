@@ -47,37 +47,53 @@ const Tile = struct {
 // Update Functions
 // --------------------------------
 
-fn update_Snake_Head(board: *[NO_TILES_X][NO_TILES_Y]Tile, snake: *Snake) bool
+fn update_Snake_Head(board: *[NO_TILES_X][NO_TILES_Y]Tile, snake: *Snake, place_food: *bool) bool
 {
     switch (board[snake.head_x][snake.head_y].has_movement) {
         Direction.Up => {
-            if (snake.head_x == 0 or board[snake.head_x - 1][snake.head_y].has_movement != Direction.Null) {
+            if (snake.head_x == 0 or 
+                (board[snake.head_x - 1][snake.head_y].has_movement != Direction.Null and
+                board[snake.head_x - 1][snake.head_y].has_movement != Direction.Constant)
+            ) {
                 return true;
             }
+            place_food.* = board[snake.head_x - 1][snake.head_y].has_movement == Direction.Constant;
 
             board[snake.head_x - 1][snake.head_y].has_movement = board[snake.head_x][snake.head_y].has_movement;
             snake.head_x -= 1;
         },
         Direction.Down => {
-            if (snake.head_x + 1 == NO_TILES_X or board[snake.head_x + 1][snake.head_y].has_movement != Direction.Null) {
+            if (snake.head_x + 1 == NO_TILES_X or 
+                (board[snake.head_x + 1][snake.head_y].has_movement != Direction.Null and
+                board[snake.head_x + 1][snake.head_y].has_movement != Direction.Constant)
+            ) {
                 return true;
             }
+            place_food.* = board[snake.head_x + 1][snake.head_y].has_movement == Direction.Constant;
 
             board[snake.head_x + 1][snake.head_y].has_movement = board[snake.head_x][snake.head_y].has_movement;
             snake.head_x += 1;
         },
         Direction.Left => {
-            if (snake.head_y == 0 or board[snake.head_x][snake.head_y - 1].has_movement != Direction.Null) {
+            if (snake.head_y == 0 or 
+                (board[snake.head_x][snake.head_y - 1].has_movement != Direction.Null and
+                board[snake.head_x][snake.head_y - 1].has_movement != Direction.Constant)
+            ) {
                 return true;
             }
+            place_food.* = board[snake.head_x][snake.head_y - 1].has_movement == Direction.Constant;
 
             board[snake.head_x][snake.head_y - 1].has_movement = board[snake.head_x][snake.head_y].has_movement;
             snake.head_y -= 1;
         },
         Direction.Right => {
-            if (snake.head_y + 1 == NO_TILES_Y or board[snake.head_x][snake.head_y + 1].has_movement != Direction.Null) {
+            if (snake.head_y + 1 == NO_TILES_Y or 
+                (board[snake.head_x][snake.head_y + 1].has_movement != Direction.Null and
+                board[snake.head_x][snake.head_y + 1].has_movement != Direction.Constant)
+            ) {
                 return true;
             }
+            place_food.* = board[snake.head_x][snake.head_y + 1].has_movement == Direction.Constant;
 
             board[snake.head_x][snake.head_y + 1].has_movement = board[snake.head_x][snake.head_y].has_movement;
             snake.head_y += 1;
@@ -252,7 +268,6 @@ pub fn main() !void
 
                 // Update the snakes movement
                 if (frame_count % SNAKE_WAIT_TIME == 0) {
-                    var end_Game: bool = false;
                     // Place the food
                     if (food) {
                         var locations_x: [NO_TILES_X * NO_TILES_Y]u32 = [_]u32 {0} ** (NO_TILES_X * NO_TILES_Y);
@@ -268,7 +283,7 @@ pub fn main() !void
                             }
                         }
                         if (count == 0) {
-                            end_Game = true;
+                            break :blk Game_State.Ending_Screen;
                         } else {
                             const pos: u16 = rand.intRangeAtMost(u16, 0, count);
                             board[locations_x[pos]][locations_y[pos]].has_movement = Direction.Constant;
@@ -277,23 +292,20 @@ pub fn main() !void
                     }
 
                     // Move the snakes head
-                    var collision: bool = update_Snake_Head(&board, &snake);
-                    
-                    // Check if the collision is not with food
-                    if (collision and board[snake.head_x][snake.head_y].has_movement == Direction.Constant) {
-                        score += 1;
-                        collision = false;
-                        food = true;
-                    } else if (collision) {
-                        end_Game = true;
-                    }
-
-                    if (end_Game) {
+                    var place_food: bool = false;
+                    var collision: bool = update_Snake_Head(&board, &snake, &place_food);
+                    if (collision) {
                         break :blk Game_State.Ending_Screen;
                     }
-
-                    // Move the snakes tail
-                    update_Snake_Tail(&board, &snake);
+                    
+                    // Check if the collision is not with food
+                    if (place_food) {
+                        score += 1;
+                        food = true;
+                    } else {
+                        // Move the snakes tail
+                        update_Snake_Tail(&board, &snake);
+                    }
                 }
             },
             Game_State.Ending_Screen => blk: {
@@ -316,6 +328,7 @@ pub fn main() !void
                     };
 
                     score = 0;
+                    food = true;
 
                     break :blk Game_State.Title_Screen;
                 }
