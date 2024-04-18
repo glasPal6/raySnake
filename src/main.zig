@@ -183,8 +183,7 @@ fn display_Game_Screen(board: *[NO_TILES_X][NO_TILES_Y]Tile, snake: *Snake) void
 fn display_Endingn_Screen(score: u16, frame_count: u32) !void 
 {
     // Display the score on the screen
-    var score_buf: [3]u8 = undefined;
-    const score_str = try std.fmt.bufPrint(&score_buf, "{}", .{score});
+    const score_str = try std.fmt.allocPrint(std.heap.page_allocator, "{d}", .{score});
     raylib.DrawText(@ptrCast(score_str), 
                     @divFloor(raylib.GetScreenWidth(), 2) - @divFloor(raylib.MeasureText(@ptrCast(score_str), 80), 2),
                     @divFloor(raylib.GetScreenHeight(), 2) - 100, 
@@ -298,7 +297,7 @@ pub fn main() !void
                         break :blk Game_State.Ending_Screen;
                     }
                     
-                    // Check if the collision is not with food
+                    // Check if the snake ate 
                     if (place_food) {
                         score += 1;
                         food = true;
