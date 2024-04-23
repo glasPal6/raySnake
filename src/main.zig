@@ -205,9 +205,14 @@ pub fn main() !void
     // --------------------------------
     // Initialize the window and close it at the end
     // --------------------------------
+    // var prng = std.rand.DefaultPrng.init(blk: {
+    //     var seed: u64 = undefined;
+    //     try std.os.getrandom(std.mem.asBytes(&seed));
+    //     break :blk seed;
+    // });
     var prng = std.rand.DefaultPrng.init(blk: {
         var seed: u64 = undefined;
-        try std.os.getrandom(std.mem.asBytes(&seed));
+        try std.posix.getrandom(std.mem.asBytes(&seed));
         break :blk seed;
     });
     const rand = prng.random();
@@ -251,6 +256,7 @@ pub fn main() !void
                 if (raylib.IsKeyPressed(raylib.KEY_ENTER)) {
                     break :blk Game_State.Game_Screen;
                 }
+                break :blk Game_State.Title_Screen;
             },
             Game_State.Game_Screen => blk: {
                 // Update the direction
@@ -305,6 +311,7 @@ pub fn main() !void
                         update_Snake_Tail(&board, &snake);
                     }
                 }
+                break :blk Game_State.Game_Screen;
             },
             Game_State.Ending_Screen => blk: {
                 if (raylib.IsKeyPressed(raylib.KEY_ENTER)) {
@@ -330,6 +337,7 @@ pub fn main() !void
 
                     break :blk Game_State.Title_Screen;
                 }
+                break :blk Game_State.Ending_Screen;
             },
         };
         frame_count += 1;
