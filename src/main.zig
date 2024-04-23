@@ -13,7 +13,9 @@ const SCREEN_HEIGHT = 800;
 const NO_TILES_X = 40; 
 const NO_TILES_Y = 40; 
 const SNAKE_WAIT_TIME: u32 = 60 * 0.25;
-
+const TILE_WIDTH: u32 = SCREEN_WIDTH / NO_TILES_X;
+const TILE_HEIGHT: u32 = SCREEN_HEIGHT / NO_TILES_Y;
+    
 const SNAKE_UP      = raylib.KEY_Q;
 const SNAKE_DOWN    = raylib.KEY_E;
 const SNAKE_LEFT    = raylib.KEY_A;
@@ -138,8 +140,8 @@ fn display_Title_Screen(frame_count: u32) void
                     @divFloor(raylib.GetScreenHeight(), 2) - 100, 
                     80, raylib.GREEN
     );
-    raylib.DrawText("Use the arrow keys to navigate",
-                    @divFloor(raylib.GetScreenWidth(), 2) - @divFloor(raylib.MeasureText("Use the arrow keys to navigate", 20), 2),
+    raylib.DrawText("Use the defined keys to navigate",
+                    @divFloor(raylib.GetScreenWidth(), 2) - @divFloor(raylib.MeasureText("Use the defined keys to navigate", 20), 2),
                     @divFloor(raylib.GetScreenHeight(), 2) - 10, 
                     20, raylib.GREEN
     );
@@ -154,9 +156,6 @@ fn display_Title_Screen(frame_count: u32) void
 
 fn display_Game_Screen(board: *[NO_TILES_X][NO_TILES_Y]Tile, snake: *Snake) void 
 {
-    const TILE_WIDTH = SCREEN_WIDTH / NO_TILES_X;
-    const TILE_HEIGHT = SCREEN_HEIGHT / NO_TILES_Y;
-    
     // Draw the board
     for (0..NO_TILES_X) |i| {
         const pos_x: c_int = @intCast(i);
@@ -292,7 +291,7 @@ pub fn main() !void
 
                     // Move the snakes head
                     var place_food: bool = false;
-                    var collision: bool = update_Snake_Head(&board, &snake, &place_food);
+                    const collision: bool = update_Snake_Head(&board, &snake, &place_food);
                     if (collision) {
                         break :blk Game_State.Ending_Screen;
                     }
