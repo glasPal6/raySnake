@@ -10,16 +10,16 @@ const raylib = @cImport({
 
 const SCREEN_WIDTH = 800;
 const SCREEN_HEIGHT = 800;
-const NO_TILES_X = 40; 
-const NO_TILES_Y = 40; 
-const SNAKE_WAIT_TIME: u32 = 60 * 0.25;
+const NO_TILES_X = 40;
+const NO_TILES_Y = 40;
+const SNAKE_WAIT_TIME: u32 = 60 * 0.10;
 const TILE_WIDTH: u32 = SCREEN_WIDTH / NO_TILES_X;
 const TILE_HEIGHT: u32 = SCREEN_HEIGHT / NO_TILES_Y;
-    
-const SNAKE_UP      = raylib.KEY_Q;
-const SNAKE_DOWN    = raylib.KEY_E;
-const SNAKE_LEFT    = raylib.KEY_A;
-const SNAKE_RIGHT   = raylib.KEY_I;
+
+const SNAKE_UP = raylib.KEY_F;
+const SNAKE_DOWN = raylib.KEY_S;
+const SNAKE_LEFT = raylib.KEY_R;
+const SNAKE_RIGHT = raylib.KEY_N;
 
 const Game_State = enum {
     Title_Screen,
@@ -28,9 +28,11 @@ const Game_State = enum {
 };
 
 const Direction = enum {
-    Up, Down,
-    Left, Right,
-    Constant, 
+    Up,
+    Down,
+    Left,
+    Right,
+    Constant,
     Null,
 };
 
@@ -40,23 +42,22 @@ const Snake = struct {
     tail_x: u16,
     tail_y: u16,
 };
- 
+
 const Tile = struct {
-    has_movement: Direction, 
+    has_movement: Direction,
 };
 
 // --------------------------------
 // Update Functions
 // --------------------------------
 
-fn update_Snake_Head(board: *[NO_TILES_X][NO_TILES_Y]Tile, snake: *Snake, place_food: *bool) bool
-{
+fn update_Snake_Head(board: *[NO_TILES_X][NO_TILES_Y]Tile, snake: *Snake, place_food: *bool) bool {
     switch (board[snake.head_x][snake.head_y].has_movement) {
         Direction.Up => {
-            if (snake.head_x == 0 or 
+            if (snake.head_x == 0 or
                 (board[snake.head_x - 1][snake.head_y].has_movement != Direction.Null and
-                board[snake.head_x - 1][snake.head_y].has_movement != Direction.Constant)
-            ) {
+                board[snake.head_x - 1][snake.head_y].has_movement != Direction.Constant))
+            {
                 return true;
             }
             place_food.* = board[snake.head_x - 1][snake.head_y].has_movement == Direction.Constant;
@@ -65,10 +66,10 @@ fn update_Snake_Head(board: *[NO_TILES_X][NO_TILES_Y]Tile, snake: *Snake, place_
             snake.head_x -= 1;
         },
         Direction.Down => {
-            if (snake.head_x + 1 == NO_TILES_X or 
+            if (snake.head_x + 1 == NO_TILES_X or
                 (board[snake.head_x + 1][snake.head_y].has_movement != Direction.Null and
-                board[snake.head_x + 1][snake.head_y].has_movement != Direction.Constant)
-            ) {
+                board[snake.head_x + 1][snake.head_y].has_movement != Direction.Constant))
+            {
                 return true;
             }
             place_food.* = board[snake.head_x + 1][snake.head_y].has_movement == Direction.Constant;
@@ -77,10 +78,10 @@ fn update_Snake_Head(board: *[NO_TILES_X][NO_TILES_Y]Tile, snake: *Snake, place_
             snake.head_x += 1;
         },
         Direction.Left => {
-            if (snake.head_y == 0 or 
+            if (snake.head_y == 0 or
                 (board[snake.head_x][snake.head_y - 1].has_movement != Direction.Null and
-                board[snake.head_x][snake.head_y - 1].has_movement != Direction.Constant)
-            ) {
+                board[snake.head_x][snake.head_y - 1].has_movement != Direction.Constant))
+            {
                 return true;
             }
             place_food.* = board[snake.head_x][snake.head_y - 1].has_movement == Direction.Constant;
@@ -89,10 +90,10 @@ fn update_Snake_Head(board: *[NO_TILES_X][NO_TILES_Y]Tile, snake: *Snake, place_
             snake.head_y -= 1;
         },
         Direction.Right => {
-            if (snake.head_y + 1 == NO_TILES_Y or 
+            if (snake.head_y + 1 == NO_TILES_Y or
                 (board[snake.head_x][snake.head_y + 1].has_movement != Direction.Null and
-                board[snake.head_x][snake.head_y + 1].has_movement != Direction.Constant)
-            ) {
+                board[snake.head_x][snake.head_y + 1].has_movement != Direction.Constant))
+            {
                 return true;
             }
             place_food.* = board[snake.head_x][snake.head_y + 1].has_movement == Direction.Constant;
@@ -100,13 +101,12 @@ fn update_Snake_Head(board: *[NO_TILES_X][NO_TILES_Y]Tile, snake: *Snake, place_
             board[snake.head_x][snake.head_y + 1].has_movement = board[snake.head_x][snake.head_y].has_movement;
             snake.head_y += 1;
         },
-        Direction.Constant , Direction.Null => {},
+        Direction.Constant, Direction.Null => {},
     }
     return false;
 }
 
-fn update_Snake_Tail(board: *[NO_TILES_X][NO_TILES_Y]Tile, snake: *Snake) void
-{
+fn update_Snake_Tail(board: *[NO_TILES_X][NO_TILES_Y]Tile, snake: *Snake) void {
     switch (board[snake.tail_x][snake.tail_y].has_movement) {
         Direction.Up => {
             board[snake.tail_x][snake.tail_y].has_movement = Direction.Null;
@@ -124,7 +124,7 @@ fn update_Snake_Tail(board: *[NO_TILES_X][NO_TILES_Y]Tile, snake: *Snake) void
             board[snake.tail_x][snake.tail_y].has_movement = Direction.Null;
             snake.tail_y += 1;
         },
-        Direction.Constant , Direction.Null => {},
+        Direction.Constant, Direction.Null => {},
     }
 }
 
@@ -132,35 +132,21 @@ fn update_Snake_Tail(board: *[NO_TILES_X][NO_TILES_Y]Tile, snake: *Snake) void
 // Display Functions
 // --------------------------------
 
-fn display_Title_Screen(frame_count: u32) void 
-{
+fn display_Title_Screen(frame_count: u32) void {
     // Draw the title screen
-    raylib.DrawText("SNAKE",
-                    @divFloor(raylib.GetScreenWidth(), 2) - @divFloor(raylib.MeasureText("SNAKE", 80), 2),
-                    @divFloor(raylib.GetScreenHeight(), 2) - 100, 
-                    80, raylib.GREEN
-    );
-    raylib.DrawText("Use the defined keys to navigate",
-                    @divFloor(raylib.GetScreenWidth(), 2) - @divFloor(raylib.MeasureText("Use the defined keys to navigate", 20), 2),
-                    @divFloor(raylib.GetScreenHeight(), 2) - 10, 
-                    20, raylib.GREEN
-    );
+    raylib.DrawText("SNAKE", @divFloor(raylib.GetScreenWidth(), 2) - @divFloor(raylib.MeasureText("SNAKE", 80), 2), @divFloor(raylib.GetScreenHeight(), 2) - 100, 80, raylib.GREEN);
+    raylib.DrawText("Use the defined keys to navigate", @divFloor(raylib.GetScreenWidth(), 2) - @divFloor(raylib.MeasureText("Use the defined keys to navigate", 20), 2), @divFloor(raylib.GetScreenHeight(), 2) - 10, 20, raylib.GREEN);
     if ((frame_count / 30) % 2 == 0) {
-        raylib.DrawText("Press [Enter] to start",
-                        @divFloor(raylib.GetScreenWidth(), 2) - @divFloor(raylib.MeasureText("Press [Enter] to start", 20), 2),
-                        @divFloor(raylib.GetScreenHeight(), 2) + 20, 
-                        20, raylib.GREEN
-        );
+        raylib.DrawText("Press [Enter] to start", @divFloor(raylib.GetScreenWidth(), 2) - @divFloor(raylib.MeasureText("Press [Enter] to start", 20), 2), @divFloor(raylib.GetScreenHeight(), 2) + 20, 20, raylib.GREEN);
     }
 }
 
-fn display_Game_Screen(board: *[NO_TILES_X][NO_TILES_Y]Tile, snake: *Snake) void 
-{
+fn display_Game_Screen(board: *[NO_TILES_X][NO_TILES_Y]Tile, snake: *Snake) void {
     // Draw the board
     for (0..NO_TILES_X) |i| {
         const pos_x: c_int = @intCast(i);
         for (0..NO_TILES_Y) |j| {
-            const pos_y: c_int = @intCast(j); 
+            const pos_y: c_int = @intCast(j);
             // Snake
             if (i == snake.head_x and j == snake.head_y) {
                 raylib.DrawRectangle(pos_y * TILE_HEIGHT, pos_x * TILE_WIDTH, TILE_WIDTH, TILE_HEIGHT, raylib.PURPLE);
@@ -168,10 +154,10 @@ fn display_Game_Screen(board: *[NO_TILES_X][NO_TILES_Y]Tile, snake: *Snake) void
                 raylib.DrawRectangle(pos_y * TILE_HEIGHT, pos_x * TILE_WIDTH, TILE_WIDTH, TILE_HEIGHT, raylib.YELLOW);
             } else if (board[i][j].has_movement != Direction.Null and board[i][j].has_movement != Direction.Constant) {
                 raylib.DrawRectangle(pos_y * TILE_HEIGHT, pos_x * TILE_WIDTH, TILE_WIDTH, TILE_HEIGHT, raylib.GREEN);
-            // Food
+                // Food
             } else if (board[i][j].has_movement == Direction.Constant) {
                 raylib.DrawRectangle(pos_y * TILE_HEIGHT, pos_x * TILE_WIDTH, TILE_WIDTH, TILE_HEIGHT, raylib.RED);
-            // Nothing
+                // Nothing
             } else {
                 raylib.DrawRectangle(pos_y * TILE_HEIGHT, pos_x * TILE_WIDTH, TILE_WIDTH, TILE_HEIGHT, raylib.BLACK);
             }
@@ -179,29 +165,19 @@ fn display_Game_Screen(board: *[NO_TILES_X][NO_TILES_Y]Tile, snake: *Snake) void
     }
 }
 
-fn display_Endingn_Screen(score: u16, frame_count: u32) !void 
-{
+fn display_Endingn_Screen(score: u16, frame_count: u32) !void {
     // Display the score on the screen
     const score_str = try std.fmt.allocPrint(std.heap.page_allocator, "{d}", .{score});
-    raylib.DrawText(@ptrCast(score_str), 
-                    @divFloor(raylib.GetScreenWidth(), 2) - @divFloor(raylib.MeasureText(@ptrCast(score_str), 80), 2),
-                    @divFloor(raylib.GetScreenHeight(), 2) - 100, 
-                    80, raylib.GREEN
-    );
+    raylib.DrawText(@ptrCast(score_str), @divFloor(raylib.GetScreenWidth(), 2) - @divFloor(raylib.MeasureText(@ptrCast(score_str), 80), 2), @divFloor(raylib.GetScreenHeight(), 2) - 100, 80, raylib.GREEN);
     if ((frame_count / 30) % 2 == 0) {
-        raylib.DrawText("Press [Enter] to start",
-                        @divFloor(raylib.GetScreenWidth(), 2) - @divFloor(raylib.MeasureText("Press [Enter] to start", 20), 2),
-                        @divFloor(raylib.GetScreenHeight(), 2) + 20, 
-                        20, raylib.GREEN
-        );
+        raylib.DrawText("Press [Enter] to start", @divFloor(raylib.GetScreenWidth(), 2) - @divFloor(raylib.MeasureText("Press [Enter] to start", 20), 2), @divFloor(raylib.GetScreenHeight(), 2) + 20, 20, raylib.GREEN);
     }
 }
 
 // --------------------------------
 // Main
 // --------------------------------
-pub fn main() !void 
-{
+pub fn main() !void {
     // --------------------------------
     // Initialize the window and close it at the end
     // --------------------------------
@@ -224,17 +200,15 @@ pub fn main() !void
     var game_state: Game_State = Game_State.Title_Screen;
     var frame_count: u32 = 0;
 
-    var board = [_][NO_TILES_X]Tile {
-        [_]Tile {
-            Tile {
-                .has_movement = Direction.Null,
-            }
-        } ** NO_TILES_Y,
+    var board = [_][NO_TILES_X]Tile{
+        [_]Tile{Tile{
+            .has_movement = Direction.Null,
+        }} ** NO_TILES_Y,
     } ** NO_TILES_X;
     board[NO_TILES_X / 2][NO_TILES_Y / 2].has_movement = Direction.Right;
     board[NO_TILES_X / 2][NO_TILES_Y / 2 - 1].has_movement = Direction.Right;
 
-    var snake = Snake {
+    var snake = Snake{
         .head_x = NO_TILES_X / 2,
         .head_y = NO_TILES_Y / 2,
         .tail_x = NO_TILES_X / 2,
@@ -260,7 +234,7 @@ pub fn main() !void
             },
             Game_State.Game_Screen => blk: {
                 // Update the direction
-                if (raylib.IsKeyReleased(SNAKE_UP)) { 
+                if (raylib.IsKeyReleased(SNAKE_UP)) {
                     board[snake.head_x][snake.head_y].has_movement = Direction.Up;
                 } else if (raylib.IsKeyReleased(SNAKE_DOWN)) {
                     board[snake.head_x][snake.head_y].has_movement = Direction.Down;
@@ -274,8 +248,8 @@ pub fn main() !void
                 if (frame_count % SNAKE_WAIT_TIME == 0) {
                     // Place the food
                     if (food) {
-                        var locations_x: [NO_TILES_X * NO_TILES_Y]u32 = [_]u32 {0} ** (NO_TILES_X * NO_TILES_Y);
-                        var locations_y: [NO_TILES_X * NO_TILES_Y]u32 = [_]u32 {0} ** (NO_TILES_X * NO_TILES_Y);
+                        var locations_x: [NO_TILES_X * NO_TILES_Y]u32 = [_]u32{0} ** (NO_TILES_X * NO_TILES_Y);
+                        var locations_y: [NO_TILES_X * NO_TILES_Y]u32 = [_]u32{0} ** (NO_TILES_X * NO_TILES_Y);
                         var count: u16 = 0;
                         for (0..NO_TILES_X) |i| {
                             for (0..NO_TILES_Y) |j| {
@@ -301,8 +275,8 @@ pub fn main() !void
                     if (collision) {
                         break :blk Game_State.Ending_Screen;
                     }
-                    
-                    // Check if the snake ate 
+
+                    // Check if the snake ate
                     if (place_food) {
                         score += 1;
                         food = true;
@@ -315,17 +289,15 @@ pub fn main() !void
             },
             Game_State.Ending_Screen => blk: {
                 if (raylib.IsKeyPressed(raylib.KEY_ENTER)) {
-                    board = [_][NO_TILES_X]Tile {
-                        [_]Tile {
-                            Tile {
-                                .has_movement = Direction.Null,
-                            }
-                        } ** NO_TILES_Y,
+                    board = [_][NO_TILES_X]Tile{
+                        [_]Tile{Tile{
+                            .has_movement = Direction.Null,
+                        }} ** NO_TILES_Y,
                     } ** NO_TILES_X;
                     board[NO_TILES_X / 2][NO_TILES_Y / 2].has_movement = Direction.Right;
                     board[NO_TILES_X / 2][NO_TILES_Y / 2 - 1].has_movement = Direction.Right;
 
-                    snake = Snake {
+                    snake = Snake{
                         .head_x = NO_TILES_X / 2,
                         .head_y = NO_TILES_Y / 2,
                         .tail_x = NO_TILES_X / 2,
@@ -349,7 +321,7 @@ pub fn main() !void
         defer raylib.EndDrawing();
 
         raylib.ClearBackground(raylib.BLACK);
-        
+
         try switch (game_state) {
             Game_State.Title_Screen => display_Title_Screen(frame_count),
             Game_State.Game_Screen => display_Game_Screen(&board, &snake),
